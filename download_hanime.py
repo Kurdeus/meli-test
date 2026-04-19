@@ -3,7 +3,7 @@ import sys
 import re
 import httpx
 import m3u8
-from Cryptodome.Cipher import AES
+from Crypto.Cipher import AES
 
 def get_video_info(slug: str):
     url = f"https://hanime.tv/api/v8/video?id={slug}"
