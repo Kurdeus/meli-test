@@ -13,6 +13,12 @@ import argparse
 import requests
 import shutil
 from bs4 import BeautifulSoup
+from io import BytesIO
+from PIL import Image
+
+def imread_from_bytes(content):
+    img = Image.open(BytesIO(content))
+    return img
 
 class MangaChapterDownloader:
     def __init__(self, headers=None):
@@ -39,11 +45,11 @@ class MangaChapterDownloader:
         paths = []
         for img in img_tags:
             src = img["src"].strip()
-            filename = src.split("/")[-1]
+            filename = src.split("/")[-1].split(".")[0] + ".webp"
             out_path = os.path.join(temp_dir, filename)
             img_data = requests.get(src, headers=self.headers).content
-            with open(out_path, "wb") as f:
-                f.write(img_data)
+            img = imread_from_bytes(img_data)
+            img.save(out_path)
             paths.append(out_path)
             print(f"Downloaded: {chapter_name}/{filename}")
         return paths, temp_dir
