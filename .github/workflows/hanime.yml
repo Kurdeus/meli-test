@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install httpx m3u8 pycryptodome
+          pip install httpx m3u8 pycryptodome>=3.18.0
 
       - name: Run download script
         run: |
