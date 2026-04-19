@@ -1,0 +1,58 @@
+name: Download Complete Website and Zip
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'URL of the webpage to download'
+        required: true
+        type: string
+      folder_name:
+        description: 'Folder name for downloaded content (will be zipped)'
+        required: true
+        type: string
+        default: 'my_site'
+
+jobs:
+  download-and-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download entire website with wget
+        run: |
+          wget \
+            --recursive \
+            --level=inf \
+            --page-requisites \
+            --adjust-extension \
+            --convert-links \
+            --no-parent \
+            --directory-prefix="${{ github.event.inputs.folder_name }}" \
+            --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" \
+            "${{ github.event.inputs.target_url }}"
+          echo "Downloaded site into folder: ${{ github.event.inputs.folder_name }}"
+
+      - name: Zip the folder
+        run: |
+          zip -r "${{ github.event.inputs.folder_name }}.zip" "${{ github.event.inputs.folder_name }}"
+          echo "Created ZIP: ${{ github.event.inputs.folder_name }}.zip"
+          ls -lh "${{ github.event.inputs.folder_name }}.zip"
+
+      - name: Commit and push ZIP to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ github.event.inputs.folder_name }}.zip"
+          git commit -m "Download and zip website from ${{ github.event.inputs.target_url }} [skip ci]" || echo "No changes to commit"
+          git push
+
+      # Optional: Also upload as artifact for easy download from the Actions page
+      - name: Upload ZIP as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.folder_name }}
+          path: ${{ github.event.inputs.folder_name }}.zip
