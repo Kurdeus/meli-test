@@ -66,7 +66,7 @@ class MangaChapterDownloader:
             print(f"Downloaded: {out_name}")
 
         # 5. Create ZIP file
-        zip_path = f"./{title}_{chapter_name}.zip"
+        zip_path = f"./{title}.zip"
         with zipfile.ZipFile(zip_path, 'w') as zipf:
             for img_path in image_paths:
                 zipf.write(img_path, arcname=os.path.basename(img_path))
