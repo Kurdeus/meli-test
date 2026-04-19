@@ -1,0 +1,45 @@
+name: Download Webpage as MHTML Batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL of the webpage to download'
+        required: false
+        type: string
+
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install pyppeteer
+
+      - name: Run MHTML downloader
+        run: |
+          python batchurl.py
+
+      - name: Upload ZIP as artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mhtml-archive
+          path: download/*.zip
+
+      - name: Commit and push download folder to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add download/
+          git commit -m "Add MHTML archive" || echo "No changes to commit"
+          git push
