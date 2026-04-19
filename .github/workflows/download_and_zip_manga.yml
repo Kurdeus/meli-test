@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       chapter_url:
-        description: 'Full URL of the manga chapter page'
+        description: 'https://manhwaclan.com/manga/webtoon-character-na-kang-lim/chapter-1/'
         required: true
         type: string
       manga_title:
-        description: 'Manga title (no spaces, e.g., OnePiece)'
+        description: 'Webtoon Character Na Kang Lim'
         required: true
         type: string
       chapter_name:
-        description: 'Chapter identifier (e.g., ch_001)'
+        description: 'ch_001'
         required: true
         type: string
 
