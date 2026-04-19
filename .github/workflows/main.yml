@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
     - name: Download Mihon APK
       run: |
         wget -O mihon-arm64-v8a-v0.19.9.apk https://github.com/mihonapp/mihon/releases/download/v0.19.9/mihon-arm64-v8a-v0.19.9.apk
@@ -19,9 +22,10 @@ jobs:
         zip mihon-v0.19.9.zip mihon-arm64-v8a-v0.19.9.apk
         echo "Created: mihon-v0.19.9.zip"
     
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: mihon-v0.19.9-zipped
-        path: mihon-v0.19.9.zip
-        retention-days: 7
+    - name: Commit and push to repository
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add mihon-v0.19.9.zip
+        git commit -m "Add Mihon v0.19.9 APK zip [skip ci]" || echo "No changes to commit"
+        git push
