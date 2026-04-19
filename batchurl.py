@@ -29,36 +29,36 @@ async def save_mhtml(url: str, output_file: str):
         f.write(mhtml_data['data'].encode())
     await browser.close()
 
-def main(url:str):
+def main(urls:str):
 
 
-    # Determine output filename
-    base_name = sanitize_filename(url.split("/")[-1])
+    for url in urls:
+        base_name = sanitize_filename(url.split("/")[-1])
 
 
-    mhtml_filename = f"{base_name}.mhtml"
-    zip_filename = f"{base_name}.zip"
+        mhtml_filename = f"{base_name}.mhtml"
+        zip_filename = f"{base_name}.zip"
 
-    # Create download directory
-    download_dir = "download"
-    os.makedirs(download_dir, exist_ok=True)
+        # Create download directory
+        download_dir = "download"
+        os.makedirs(download_dir, exist_ok=True)
 
-    # Temporary folder for MHTML
-    os.makedirs("temp", exist_ok=True)
-    mhtml_path = os.path.join("temp", mhtml_filename)
+        # Temporary folder for MHTML
+        os.makedirs("temp", exist_ok=True)
+        mhtml_path = os.path.join("temp", mhtml_filename)
 
-    asyncio.run(save_mhtml(url, mhtml_path))
+        asyncio.run(save_mhtml(url, mhtml_path))
 
-    # Create ZIP inside download folder
-    zip_path = os.path.join(download_dir, zip_filename)
-    with zipfile.ZipFile(zip_path, 'w') as zf:
-        zf.write(mhtml_path, arcname=mhtml_filename)
+        # Create ZIP inside download folder
+        zip_path = os.path.join(download_dir, zip_filename)
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            zf.write(mhtml_path, arcname=mhtml_filename)
 
-    # Cleanup temp
-    import shutil
-    shutil.rmtree("temp", ignore_errors=True)
+        # Cleanup temp
+        import shutil
+        shutil.rmtree("temp", ignore_errors=True)
 
-    print(f"✅ Created {zip_path} (contains {mhtml_filename})")
+        print(f"✅ Created {zip_path} (contains {mhtml_filename})")
 
 urls = """https://omegascans.org/series/kinkfolder-zip
 https://omegascans.org/series/im-the-only-guy-at-the-massage-shop
