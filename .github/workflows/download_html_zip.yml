@@ -1,0 +1,47 @@
+name: Download HTML and Zip
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'URL of the webpage to download'
+        required: true
+        type: string
+      output_name:
+        description: 'Base name for output (no spaces, e.g., my_article)'
+        required: true
+        type: string
+        default: 'downloaded_page'
+
+jobs:
+  download-and-zip-html:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # automatically provided, write access
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run HTML downloader script
+        run: |
+          python download_html.py \
+            --url "${{ github.event.inputs.target_url }}" \
+            --output "${{ github.event.inputs.output_name }}"
+
+      - name: Commit and push ZIP to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ${{ github.event.inputs.output_name }}.zip
+          git commit -m "Download HTML from ${{ github.event.inputs.target_url }} [skip ci]" || echo "No changes"
+          git push
