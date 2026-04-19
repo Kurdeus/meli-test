@@ -27,7 +27,7 @@ jobs:
 
       - name: Run download script
         run: |
-          python hanime_downloader.py "${{ github.event.inputs.url }}"
+          python download_hanime.py "${{ github.event.inputs.url }}"
 
       - name: Upload video as artifact (optional)
         uses: actions/upload-artifact@v4
