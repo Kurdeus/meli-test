@@ -1,0 +1,27 @@
+name: Download and Zip Mihon APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download-and-zip:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download Mihon APK
+      run: |
+        wget -O mihon-arm64-v8a-v0.19.9.apk https://github.com/mihonapp/mihon/releases/download/v0.19.9/mihon-arm64-v8a-v0.19.9.apk
+        echo "Downloaded APK:"
+        ls -lh mihon-arm64-v8a-v0.19.9.apk
+    
+    - name: Zip the APK
+      run: |
+        zip mihon-v0.19.9.zip mihon-arm64-v8a-v0.19.9.apk
+        echo "Created: mihon-v0.19.9.zip"
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mihon-v0.19.9-zipped
+        path: mihon-v0.19.9.zip
+        retention-days: 7
