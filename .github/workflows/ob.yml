@@ -4,10 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       manga_title:
-        description: 'Manga title (no spaces, e.g., OnePiece)'
+        description: 'Manga title (e.g., pickup)'
         required: true
         type: string
-   
+      start_chapter:
+        description: 'First chapter number'
+        required: true
+        default: 21
+        type: number
+      end_chapter:
+        description: 'Last chapter number'
+        required: true
+        default: 35
+        type: number
 
 jobs:
   download-and-zip:
@@ -28,7 +37,10 @@ jobs:
 
       - name: Run manga downloader script
         run: |
-          python omegabatch.py
+          python omegabatch.py \
+            --title "${{ github.event.inputs.manga_title }}" \
+            --start ${{ github.event.inputs.start_chapter }} \
+            --end ${{ github.event.inputs.end_chapter }}
 
       - name: Upload ZIP as artifact
         uses: actions/upload-artifact@v4
@@ -36,11 +48,10 @@ jobs:
           name: ${{ github.event.inputs.manga_title }}
           path: ${{ github.event.inputs.manga_title }}.zip
 
-      # Optional: commit and push the ZIP to the repository
       - name: Commit and push ZIP to repo
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ${{ github.event.inputs.manga_title }}.zip
-          git commit -m "Add manga chapter [skip ci]" || echo "No changes"
+          git commit -m "Add manga ${{ github.event.inputs.manga_title }} (chapters ${{ github.event.inputs.start_chapter }}-${{ github.event.inputs.end_chapter }}) [skip ci]" || echo "No changes to commit"
           git push
