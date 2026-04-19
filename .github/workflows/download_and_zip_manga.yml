@@ -1,56 +1,29 @@
-name: Download and Zip Manga Chapter
+name: Download and Zip Mihon APK
 
 on:
   workflow_dispatch:
-    inputs:
-      chapter_url:
-        description: 'https://manhwaclan.com/manga/webtoon-character-na-kang-lim/chapter-1/'
-        required: true
-        type: string
-      manga_title:
-        description: 'Webtoon Character Na Kang Lim'
-        required: true
-        type: string
-      chapter_name:
-        description: 'ch_001'
-        required: true
-        type: string
 
 jobs:
   download-and-zip:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          pip install requests beautifulsoup4
-
-      - name: Run manga downloader script
-        run: |
-          python download_chapter.py \
-            --url "${{ github.event.inputs.chapter_url }}" \
-            --title "${{ github.event.inputs.manga_title }}" \
-            --chapter "${{ github.event.inputs.chapter_name }}"
-
-      - name: Upload ZIP as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.event.inputs.manga_title }}-${{ github.event.inputs.chapter_name }}
-          path: ${{ github.event.inputs.manga_title }}_${{ github.event.inputs.chapter_name }}.zip
-
-      # --- OPTIONAL: commit and push to repository (like APK example) ---
-      # - name: Commit and push ZIP to repo
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add ${{ github.event.inputs.manga_title }}_${{ github.event.inputs.chapter_name }}.zip
-      #     git commit -m "Add manga chapter ${{ github.event.inputs.chapter_name }} [skip ci]" || echo "No changes"
-      #     git push
+    - name: Checkout repository with PAT
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PAT_TOKEN }}  # You need to create this secret
+    
+    - name: Download Mihon APK
+      run: |
+        wget -O mihon-arm64-v8a-v0.19.9.apk https://github.com/mihonapp/mihon/releases/download/v0.19.9/mihon-arm64-v8a-v0.19.9.apk
+    
+    - name: Zip the APK
+      run: zip mihon-v0.19.9.zip mihon-arm64-v8a-v0.19.9.apk
+    
+    - name: Commit and push to repository
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add mihon-v0.19.9.zip
+        git commit -m "Add Mihon v0.19.9 APK zip [skip ci]" || echo "No changes to commit"
+        git push
