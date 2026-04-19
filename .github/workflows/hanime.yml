@@ -1,0 +1,44 @@
+name: Download Hanime.tv Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL of the Hanime.tv video (e.g., https://hanime.tv/videos/hentai/example-slug)'
+        required: true
+        type: string
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install httpx m3u8 pycryptodome
+
+      - name: Run download script
+        run: |
+          python hanime_downloader.py "${{ github.event.inputs.url }}"
+
+      - name: Upload video as artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanime-video
+          path: download/*.mp4
+
+      - name: Commit and push download folder to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add download/
+          git commit -m "Add downloaded video from ${{ github.event.inputs.url }}" || echo "No changes to commit"
+          git push
