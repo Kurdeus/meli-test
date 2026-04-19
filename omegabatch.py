@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Manga Chapter Downloader + Zipper (generic image finder)
+Manga Batch Downloader (multiple chapters → single ZIP)
 Usage:
-    python download_chapter.py --url "https://example.com/manga/chapter-1" --title "my_manga" --chapter "ch_001"
+    python omegabatch.py --title "pickup" --start 21 --end 35
 """
 
 import os
@@ -20,65 +20,81 @@ class MangaChapterDownloader:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
         }
 
-    def download_images(self, chapter_url, title, chapter_name):
-        """
-        Download all images from the chapter page and return the path of the created ZIP file.
-        """
-        # 1. Fetch the chapter page
+    def download_chapter_images(self, chapter_url, title, chapter_name):
+        """Download images for one chapter, return list of (local_path, original_filename)"""
         response = requests.get(chapter_url, headers=self.headers)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # 2. Find all img tags (no specific container needed)
-        # Optionally filter by domain to avoid ads/logo
         img_tags = soup.find_all("img")
-        if not img_tags:
-            raise ValueError(f"No <img> tags found at {chapter_url}")
-
-        # Optionally keep only images from the manga host (e.g., omegascans)
+        # Keep only images from the manga host
         img_tags = [img for img in img_tags if img.get("src") and "media.omegascans.org" in img.get("src")]
         if not img_tags:
-            raise ValueError("No manga images found (filtered by domain 'media.omegascans.org')")
+            raise ValueError(f"No manga images found at {chapter_url}")
 
-        # 3. Prepare temp directory
+        # Temp dir for this chapter
         temp_dir = f"./temp/{title}/{chapter_name}"
         os.makedirs(temp_dir, exist_ok=True)
 
-        # 4. Download each image preserving original filename (order = appearance)
-        image_paths = []
+        paths = []
         for img in img_tags:
-            src = img.get("src").strip()
-            # Extract filename from URL (e.g., PU19-01.jpg)
+            src = img["src"].strip()
             filename = src.split("/")[-1]
             out_path = os.path.join(temp_dir, filename)
-
-            # Download and save
             img_data = requests.get(src, headers=self.headers).content
             with open(out_path, "wb") as f:
                 f.write(img_data)
-            image_paths.append(out_path)
-            print(f"Downloaded: {filename}")
+            paths.append(out_path)
+            print(f"Downloaded: {chapter_name}/{filename}")
+        return paths, temp_dir
 
-        # 5. Create ZIP file
-        zip_path = f"./{title}_{chapter_name}.zip"
+    def download_batch(self, title, start_ch, end_ch, base_url_template="https://omegascans.org/series/{}/chapter-{}"):
+        """
+        Download all chapters from start_ch to end_ch (inclusive).
+        Returns path to final ZIP containing all images.
+        """
+        all_image_paths = []
+        temp_dirs = []
+
+        for ch_num in range(start_ch, end_ch + 1):
+            chapter_url = base_url_template.format(title, ch_num)
+            chapter_name = f"chapter-{ch_num}"
+            print(f"\nProcessing {chapter_url}")
+            try:
+                paths, tmp_dir = self.download_chapter_images(chapter_url, title, chapter_name)
+                all_image_paths.extend(paths)
+                temp_dirs.append(tmp_dir)
+            except Exception as e:
+                print(f"⚠️  Skipping {chapter_name}: {e}")
+
+        if not all_image_paths:
+            raise RuntimeError("No images downloaded from any chapter.")
+
+        # Create final ZIP
+        zip_path = f"{title}.zip"
         with zipfile.ZipFile(zip_path, 'w') as zipf:
-            for img_path in image_paths:
-                zipf.write(img_path, arcname=os.path.basename(img_path))
+            for img_path in all_image_paths:
+                # Keep folder structure: chapter-21/001.jpg
+                arcname = os.path.relpath(img_path, start=os.path.commonpath(temp_dirs))
+                zipf.write(img_path, arcname=arcname)
 
-        # 6. Clean up temp folder
-        shutil.rmtree(temp_dir)
+        # Clean up all temp folders
+        for tmp_dir in temp_dirs:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
-        print(f"\n✅ ZIP created: {zip_path} (contains {len(image_paths)} images)")
+        print(f"\n✅ All chapters zipped into {zip_path} (total {len(all_image_paths)} images)")
         return zip_path
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--title", required=True, help="Manga title (e.g., pickup)")
+    parser.add_argument("--start", type=int, required=True, help="First chapter number")
+    parser.add_argument("--end", type=int, required=True, help="Last chapter number")
+    parser.add_argument("--url-template", default="https://omegascans.org/series/{}/chapter-{}",
+                        help="URL template with {} for title and chapter number")
+    args = parser.parse_args()
 
-URLS = [
-
-"https://omegascans.org/series/pickup/chapter-{}".format(i) for i in range(21, 36)
-
-]
-downloader = MangaChapterDownloader()
-for url in URLS:
-    print(url)
-    zip_file = downloader.download_images(url, "pickup", url.split("/")[-1])
+    downloader = MangaChapterDownloader()
+    zip_file = downloader.download_batch(args.title, args.start, args.end, args.url_template)
+    print(f"Created: {zip_file}")
