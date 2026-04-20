@@ -1,4 +1,4 @@
-name: Download and Zip Manga Chapter
+name: Download and Zip OMEGA Chapter
 
 on:
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4
+          pip install requests beautifulsoup4 pillow~=9.0.1
 
       - name: Run manga downloader script
         run: |
