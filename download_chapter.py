@@ -5,7 +5,7 @@ Usage:
     python download_chapter.py --url "https://example.com/manga/chapter-1" --title "my_manga" --chapter "ch_001"
 """
 
-import os, cv2
+import os
 import time
 import re
 import sys
