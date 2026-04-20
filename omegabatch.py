@@ -68,14 +68,17 @@ class MangaChapterDownloader:
 
         paths = []
         for img in img_tags:
-            src = img["src"].strip()
-            filename = src.split("/")[-1].split(".")[0] + ".webp"
-            out_path = os.path.join(temp_dir, filename)
-            img_data = self.session.force_get(src).content
-            img = imread_from_bytes(img_data)
-            img.save(out_path)
-            paths.append(out_path)
-            print(f"Downloaded: {chapter_name}/{filename}")
+            try:
+                src = img["src"].strip()
+                filename = src.split("/")[-1].split(".")[0] + ".webp"
+                out_path = os.path.join(temp_dir, filename)
+                img_data = self.session.force_get(src).content
+                img = imread_from_bytes(img_data)
+                img.save(out_path)
+                paths.append(out_path)
+                print(f"Downloaded: {chapter_name}/{filename}")
+            except:
+                pass
         return paths, temp_dir
 
     def download_batch(self, title, start_ch, end_ch, base_url_template="https://omegascans.org/series/{}/chapter-{}"):
@@ -96,6 +99,12 @@ class MangaChapterDownloader:
                 temp_dirs.append(tmp_dir)
             except Exception as e:
                 print(f"⚠️  Skipping {chapter_name}: {e}")
+                try:
+                    paths, tmp_dir = self.download_chapter_images(chapter_url, title, chapter_name)
+                    all_image_paths.extend(paths)
+                    temp_dirs.append(tmp_dir)
+                except Exception as e:
+                    print(f"⚠️  Skipping {chapter_name}: {e}")
 
         if not all_image_paths:
             raise RuntimeError("No images downloaded from any chapter.")
