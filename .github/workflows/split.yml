@@ -34,7 +34,7 @@ jobs:
       - name: Download and split file
         run: |
           python split_file.py \
-            --url "{{ github.event.inputs.file_url }}" \
+            --url "${{ github.event.inputs.file_url }}" \
             --output-folder "${{ github.event.inputs.output_folder }}"
 
       - name: Commit and push output folder
