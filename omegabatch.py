@@ -1,5 +1,3 @@
-
-
 import os
 import re
 import sys
@@ -110,7 +108,7 @@ class MangaChapterDownloader:
             raise RuntimeError("No images downloaded from any chapter.")
 
         # Create final ZIP
-        zip_path = f"{title}.zip"
+        zip_path = f"{title}_{start_ch}-{end_ch}.zip"
         with zipfile.ZipFile(zip_path, 'w') as zipf:
             for img_path in all_image_paths:
                 # Preserve chapter subfolders inside the zip
