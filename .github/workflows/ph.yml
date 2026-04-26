@@ -1,0 +1,44 @@
+# .github/workflows/extract-direct-links.yml
+name: Extract Pornhub Direct Links
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Pornhub Video URL'
+        required: true
+        type: string
+  issue_comment:
+    types: [created]
+
+jobs:
+  download-and-zip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install yt-dlp
+        
+      - name: Download and split file
+        run: |
+          python ph.py \
+            --url "${{ github.event.inputs.video_url }}"
+
+      - name: Commit and push output folder
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "link.txt"
+          git commit -m "ok"
+          git push
+
+  
