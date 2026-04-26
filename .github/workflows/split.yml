@@ -12,10 +12,7 @@ on:
         required: true
         type: string
         default: 'output'
-      size_mb1:
-        description: 'Size of first ZIP (MB)'
-        type: number
-        default: "90"
+
 
 jobs:
   download-and-zip:
@@ -38,8 +35,7 @@ jobs:
         run: |
           python split_file.py \
             --url "{{ github.event.inputs.file_url }}" \
-            --output-folder "${{ github.event.inputs.output_folder }}" \
-            --size-mb1 "{{ github.event.inputs.size_mb1 }}"
+            --output-folder "${{ github.event.inputs.output_folder }}"
 
       - name: Commit and push output folder
         run: |
