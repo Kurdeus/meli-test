@@ -1,49 +1,30 @@
-import argparse
+import re
 import subprocess
-import os
+import argparse
 from pathlib import Path
 
-def download_video(url, output_dir="ph-dl"):
-    """دانلود ویدیو در پوشه ph-dl"""
-    
-    # ساخت پوشه
-    Path(output_dir).mkdir(exist_ok=True)
-    
-    cmd = [
-        "yt-dlp",
-        url,
-        "-o", f"{output_dir}/%(uploader)s - %(title)s.%(ext)s",  # نام فایل بهتر
-        "--referer", "https://www.pornhub.com/",
-        "--format", "best[height<=1080]/best"
-    ]
-    
-    print(f"⬇️ دانلود شروع شد...")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    
-    if result.returncode == 0:
-        print(f"✅ دانلود تمام شد: {output_dir}/")
-        return True
-    else:
-        print("❌ خطا در دانلود")
-        print(result.stderr)
-        return False
+# ======================
+# Configuration
+# ======================
+DOWNLOADS_FOLDER = Path("downloads")
 
-def get_direct_url(url, output_txt="link.txt"):
-    """استخراج لینک مستقیم"""
-    cmd = [
-        "yt-dlp", "--get-url",
-        "--format", "best[height<=1080]",
-        url, "--referer", "https://www.pornhub.com/"
-    ]
+def download_video(url):
+    """Download single video with metadata"""
+    DOWNLOADS_FOLDER.mkdir(parents=True, exist_ok=True)
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode == 0 and result.stdout.strip():
-        direct_url = result.stdout.strip()
-        with open(output_txt, "w", encoding="utf-8") as f:
-            f.write(f"Direct URL: {direct_url}\n")
-        print(f"🔗 لینک مستقیم: {output_txt}")
-        return direct_url
-    return None
+    print(f"Downloading to: {DOWNLOADS_FOLDER}")
+    
+    subprocess.run([
+        "yt-dlp",
+        "--ignore-errors",
+        "--no-warnings",
+        "--referer", "https://www.pornhub.com/",
+        "-o", "%(id)s.%(ext)s",
+        "--embed-metadata",
+        "--embed-thumbnail",
+        "--no-overwrites",
+        url
+    ], cwd=DOWNLOADS_FOLDER)
 
 def main():
     parser = argparse.ArgumentParser(description="Pornhub Downloader")
@@ -51,7 +32,12 @@ def main():
     
     args = parser.parse_args()
     
-    download_video(args.url)
+    try:
+        download_video(args.url)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("Download complete!")
 
 if __name__ == "__main__":
     main()
