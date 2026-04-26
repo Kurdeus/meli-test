@@ -36,7 +36,7 @@ jobs:
 
       - name: Download and split file
         run: |
-          $python split_file.py \$
+          python split_file.py \$
             --url "{{ github.event.inputs.file_url }}" \
             --output-folder "${{ github.event.inputs.output_folder }}" \$
             --size-mb1 "{{ github.event.inputs.size_mb1 }}"
