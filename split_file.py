@@ -56,10 +56,9 @@ def main():
     parser = argparse.ArgumentParser(description="Download file from URL and split into two ZIPs")
     parser.add_argument("--url", required=True, help="Direct file download URL")
     parser.add_argument("--output-folder", default="output", help="Output folder name")
-    parser.add_argument("--size-mb1", default=str(90), help="Size of first zip (MB)")
     
     args = parser.parse_args()
-    download_and_split(args.url, args.output_folder, args.size_mb1)
+    download_and_split(args.url, args.output_folder)
 
 if __name__ == "__main__":
     main()
