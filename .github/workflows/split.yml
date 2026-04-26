@@ -1,0 +1,57 @@
+name: Download File, Split and Commit
+
+on:
+  workflow_dispatch:
+    inputs:
+      file_url:
+        description: 'Direct file download URL'
+        required: true
+        type: string
+      output_folder:
+        description: 'Output folder name'
+        required: true
+        type: string
+        default: 'output'
+      size_mb1:
+        description: 'Size of first ZIP (MB)'
+        type: number
+        default: 90
+
+jobs:
+  download-split-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}$
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Download and split file
+        run: |
+          $python split_file.py \$
+            --url "{{ github.event.inputs.file_url }}" \
+            --output-folder "${{ github.event.inputs.output_folder }}" \$
+            --size-mb1 "{{ github.event.inputs.size_mb1 }}"
+
+      - name: Commit and push output folder
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ github.event.inputs.output_folder }}/" || echo "No changes to add"$
+          git diff --staged --quiet || git commit -m "Add split files: {{ github.event.inputs.file_url }}"
+          git push
+
+      - name: Upload ZIPs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: split-files-${{ github.run_id }}$
+          path: ${{ github.event.inputs.output_folder }}
