@@ -4,13 +4,14 @@ import os
 import requests
 from urllib.parse import urlparse
 
-def download_and_split(url, output_folder="output", size_mb1=90):
+def download_and_split(url, output_folder="output", size_mb1x="90"):
     """
     Downloads file from URL and splits into two zip files.
     """
     os.makedirs(output_folder, exist_ok=True)
     
     # Download file
+    size_mb1 = int(size_mb1x)
     filename = os.path.basename(urlparse(url).path) or "downloaded_file"
     filepath = os.path.join(output_folder, filename)
     
@@ -55,7 +56,7 @@ def main():
     parser = argparse.ArgumentParser(description="Download file from URL and split into two ZIPs")
     parser.add_argument("--url", required=True, help="Direct file download URL")
     parser.add_argument("--output-folder", default="output", help="Output folder name")
-    parser.add_argument("--size-mb1", type=int, default=90, help="Size of first zip (MB)")
+    parser.add_argument("--size-mb1", default=str(90), help="Size of first zip (MB)")
     
     args = parser.parse_args()
     download_and_split(args.url, args.output_folder, args.size_mb1)
