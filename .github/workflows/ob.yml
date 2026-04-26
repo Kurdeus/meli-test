@@ -10,12 +10,12 @@ on:
       start_chapter:
         description: 'First chapter number'
         required: true
-        default: 21
+        default: 1
         type: number
       end_chapter:
         description: 'Last chapter number'
         required: true
-        default: 35
+        default: 15
         type: number
 
 jobs:
@@ -45,8 +45,8 @@ jobs:
       - name: Upload ZIP as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.inputs.manga_title }}
-          path: ${{ github.event.inputs.manga_title }}.zip
+          name: ${{ github.event.inputs.manga_title }}_${{ github.event.inputs.start_chapter }}-${{ github.event.inputs.end_chapter }}
+          path: ${{ github.event.inputs.manga_title }}_${{ github.event.inputs.start_chapter }}-${{ github.event.inputs.end_chapter }}.zip
 
       - name: Commit and push ZIP to repo
         run: |
