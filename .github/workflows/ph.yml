@@ -1,5 +1,5 @@
-# .github/workflows/extract-direct-links.yml
-name: Extract Pornhub Direct Links
+# .github/workflows/pornhub-downloader.yml
+name: Pornhub Downloader
 
 on:
   workflow_dispatch:
@@ -12,9 +12,9 @@ on:
     types: [created]
 
 jobs:
-  download-and-zip:
+  download-video:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,21 +24,55 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install & upgrade yt-dlp
         run: |
-          pip install yt-dlp
-        
-      - name: Download and split file
-        run: |
-          python ph.py \
-            --url "${{ github.event.inputs.video_url }}"
+          pip install --upgrade yt-dlp
 
-      - name: Commit and push output folder
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add downloads/
-          git commit -m "ok"
-          git push
+      - name: Create downloads directory
+        run: mkdir -p downloads
 
-  
+      - name: Download video
+        env:
+          VIDEO_URL: ${{ github.event.inputs.video_url }}$
+        run: |
+          echo "📥 Downloading: VIDEO_URL"
+          
+          yt-dlp \
+            --verbose \
+            --ignore-errors \
+            --no-warnings \
+            --referer "https://www.pornhub.com/" \
+            --cookies-from-browser chrome \
+            -o "downloads/%(title)s.%(ext)s" \
+            --embed-metadata \
+            --embed-thumbnail \
+            --no-overwrites \
+            "$VIDEO_URL"$
+
+      - name: List downloaded files
+        run: |
+          echo '📁 Downloaded files:'
+          ls -la downloads/ || echo "No files downloaded"
+
+      - name: Commit and push downloads
+        run: |
+          $git config user.name "github-actions[bot]"$
+          $git config user.email "github-actions[bot]@users.noreply.github.com"$
+          git add downloads/ || true
+          
+          if git diff --staged --quiet; then
+            echo "❌ No files to commit"
+            exit 1
+          else
+            git commit -m "Add video: (ls downloads/ | head -1 || echo 'files')"
+            git push
+            echo "✅ Files committed and pushed!"
+          fi
+
+      - name: Upload as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pornhub-video
+          path: downloads/*
+          retention-days: 7
