@@ -15,7 +15,7 @@ on:
       size_mb1:
         description: 'Size of first ZIP (MB)'
         type: number
-        default: 90
+        default: "90"
 
 jobs:
   download-and-zip:
