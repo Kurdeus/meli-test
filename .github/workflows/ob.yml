@@ -52,6 +52,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ${{ github.event.inputs.manga_title }}.zip
+          git add ${{ github.event.inputs.manga_title }}_${{ github.event.inputs.start_chapter }}-${{ github.event.inputs.end_chapter }}.zip
           git commit -m "Add manga ${{ github.event.inputs.manga_title }} (chapters ${{ github.event.inputs.start_chapter }}-${{ github.event.inputs.end_chapter }}) [skip ci]" || echo "No changes to commit"
           git push
